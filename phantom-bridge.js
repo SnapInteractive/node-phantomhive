@@ -116,7 +116,7 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "evaluate": // (function, arg1, arg2, ...)` {object}
-				var args = data.args[1].slice(0);
+				var args = (data.args[1] || []).slice(0);
 				args.unshift((new Function("return " + data.args[0]))());
 				send(data, [ page.evaluate.apply(page, args) ]);
 				break;
@@ -133,8 +133,9 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "open": // (url, callback)` {void}
-				page.open(data.args[0], function() {
-					send(data);
+				page.open(data.args[0], function(status) {
+					// console.log("opening page...");
+					send(data, [ status ]);
 				});
 				break;
 
@@ -151,12 +152,24 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "set":
-				var k;
+				var k, j;
 				if (typeof data.args[0] === "string") {
-					page[data.args[0]] = data.args[1];
+					if (data.args[0] === "settings") {
+						for (k in data.args[1]) {
+							page.settings[k] = data.args[1][k];
+						}
+					} else {
+						page[data.args[0]] = data.args[1];
+					}
 				} else {
 					for (k in data.args[0]) {
-						page[k] = data.args[0][k];
+						if (k === "settings") {
+							for (l in data.args[0][k]) {
+								page.settings[l] = data.args[k][l];
+							}
+						} else {
+							page[k] = data.args[0][k];
+						}
 					}
 				}
 				send(data);
