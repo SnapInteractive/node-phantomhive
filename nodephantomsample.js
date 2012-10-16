@@ -5,13 +5,16 @@ phantomjs.listen(function(phantom) {
 		page.open("http://google.com", function() {
 			setTimeout(function() {
 				page.evaluate(function() {
-					return typeof window;
-				}, [ 1, 2, 3 ], function() {
-
+					return document.title;
+				}, [ 1, 2, 3 ], function(val) {
+					console.log('done eval', val);
 				});
 				// console.log(page.renderBase64("png"));
 			}, 5000);
 		});
+		// phantom.get("version", function(version) {
+		// console.log("version: ", version);
+		// });
 		// phantom.exit();
 	});
 }, 8080);

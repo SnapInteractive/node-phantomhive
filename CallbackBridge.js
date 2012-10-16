@@ -23,7 +23,7 @@ CallbackBridge.prototype.send = function(command, callback, args) {
 		command : command,
 		args : args || []
 	};
-	console.log("send", data);
+	// console.log("send", data);
 
 	this.socket.emit("exec", JSON.stringify(data));
 

@@ -28,11 +28,12 @@ Page.prototype._onReceive = function(data) {
 		case "includeJs": // (url, callback)` {void}
 		case "injectJs": // (filename)` {boolean}
 		case "open": // (url, callback)` {void}
-		case "release": // ()` {void}
 		case "render": // (filename)` {void}
 		case "renderBase64": // (format)`
 		case "sendEvent": // (type, mouseX, mouseY)`
 		case "uploadFile": // (selector, filename)`
+		case "get":
+		case "set":
 			if (this.activeRequests[data.command_id]) {
 				this.activeRequests[data.command_id](data.args);
 			}
@@ -103,18 +104,37 @@ Page.prototype.uploadFile = function(selector, filename, callback) {
 	this.send("uploadFile", callback, [ selector, filename ]);
 };
 
-// `clipRect` {object}
-// `content` {string}
-// `cookies` {array}
-// `customHeaders` {object}
-// `frameContent` {string}
-// `framePlainText` {string}
-// `frameUrl` {string}
-// `libraryPath` {string}
-// `navigationLocked` {boolean}
-// `paperSize` {object}
-// `plainText` {string}
-// `settings` {object}
-// `url` {string}
-// `viewportSize` {object}
-// `zoomFactor` {number}
+Page.prototype.get = function(key, callback) {
+	// `clipRect` {object}
+	// `content` {string}
+	// `cookies` {array}
+	// `customHeaders` {object}
+	// `frameContent` {string}
+	// `framePlainText` {string}
+	// `frameUrl` {string}
+	// `libraryPath` {string}
+	// `navigationLocked` {boolean}
+	// `paperSize` {object}
+	// `plainText` {string}
+	// `settings` {object}
+	// `url` {string}
+	// `viewportSize` {object}
+	// `zoomFactor` {number}
+	this.send("get", callback, [ key ]);
+};
+
+Page.prototype.set = function(key, value, callback) {
+	// `clipRect` {object}
+	// `content` {string}
+	// `cookies` {array}
+	// `customHeaders` {object}
+	// `frameContent` {string}
+	// `frameUrl` {string}
+	// `libraryPath` {string}
+	// `navigationLocked` {boolean}
+	// `paperSize` {object}
+	// `settings` {object}
+	// `viewportSize` {object}
+	// `zoomFactor` {number}
+	this.send("set", callback, [ key, value ]);
+};

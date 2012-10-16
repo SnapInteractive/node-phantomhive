@@ -48,13 +48,12 @@ Phantom.prototype._startPhantomProcess = function(options) {
 	// create the phantomjs instance
 	var phantom = child_process.spawn("phantomjs", [ __dirname + "/phantom-bridge.js", options.port ]);
 	phantom.stdout.on("data", function(data) {
-		return console.log("phantom stdout: " + data);
+		console.log("phantom: " + data);
 	});
 	phantom.stderr.on("data", function(data) {
-		return console.warn("phantom stderr: " + data);
+		console.warn("phantom: " + data);
 	});
 	phantom.stderr.on("exit", function(data) {
-		console.log(data);
 	});
 	this._process = phantom;
 	return phantom;
@@ -101,14 +100,23 @@ Phantom.prototype._onConnected = function(socket) {
 };
 
 Phantom.prototype._onReceive = function(data) {
-	//console.log("response", data);
+	// console.log("response", data);
 	if (data.page === this.id) {
 		switch (data.command) {
 			case "createPage":
+				this["_" + data.command](data);
+				break;
 			case "injectJs":
 			case "exit":
 			case "done":
-				this["_" + data.command](data);
+			case "addCookie":
+			case "deleteCookie":
+			case "clearCookies":
+			case "get":
+			case "set":
+				if (this.activeRequests[data.command_id]) {
+					this.activeRequests[data.command_id](data.args);
+				}
 				break;
 			default:
 				console.log("Unknown command: " + data.command);
@@ -135,15 +143,20 @@ Phantom.prototype._createPage = function(data) {
 	}
 };
 
-var basicCallback = function(data) {
-	if (this.activeRequests[data.command_id]) {
-		this.activeRequests[data.command_id](data.args);
-	}
+Phantom.prototype.get = function(key, callback) {
+	// cookies {array}
+	// cookiesEnabled {boolean}
+	// libraryPath {string}
+	// version {object}
+	this.send("get", callback, [ key ]);
 };
 
-[ "injectJs", "addCookie", "deleteCookie", "deleteCookie", "exit", "done" ].forEach(function(name) {
-	Phantom.prototype["_" + name] = basicCallback;
-});
+Phantom.prototype.set = function(key, value, callback) {
+	// cookies {array}
+	// cookiesEnabled {boolean}
+	// libraryPath {string}
+	this.send("set", callback, [ key, value ]);
+};
 
 Phantom.prototype.addCookie = function(cookie, callback) {
 	this.send("addCookie", callback, [ cookie ]);
@@ -167,33 +180,7 @@ Phantom.prototype.injectJs = function(filename, callback) {
 
 Phantom.prototype.exit = function(callback) {
 	this.send("exit", function() {
-		console.log("we're done");
 		this._server.close();
 		this.send("done", callback);
 	});
 };
-
-/*
- * cookies {array}
- *
- * Introduced: PhantomJS 1.7 Get or set cookies for any domain (though, for setting, use of phantom.addCookie is preferred). These cookies are stored in the
- * CookieJar and will be supplied when opening pertinent WebPages. This array will be pre-populated by any existing cookie data stored in the cookie file
- * specified in the PhantomJS startup config/command-line options, if any.
- *
- * cookiesEnabled {boolean}
- *
- * Introduced: PhantomJS 1.7 Controls whether the CookieJar is enabled or not. Defaults to true.
- *
- * libraryPath {string}
- *
- * This property stores the path which is used by injectJs function to resolve the script name. Initially it is set to the location of the script invoked by
- * PhantomJS.
- *
- * scriptName {string}
- *
- * Stability: DEPRECATED - Use system.args[0] from the System module Read-only. The name of the invoked script file.
- *
- * version {object}
- *
- * Read-only. The version of the executing PhantomJS instance. Example value: { major: 1, minor: 0, patch: 0 }.
- */

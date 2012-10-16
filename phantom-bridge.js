@@ -4,11 +4,11 @@ var pages = {};
 var pageuuid = 0;
 var controller = webpage.create();
 
-function send(page_id, command_id, command, args, callback) {
+function send(passthrough, args) {
 	var data = {
-		page : page_id,
-		command_id : command_id,
-		command : command,
+		page : passthrough.page,
+		command_id : passthrough.command_id,
+		command : passthrough.command,
 		args : args || []
 	};
 	controller.evaluate('function(){socket.emit("exec",' + JSON.stringify(data) + ');}');
@@ -19,7 +19,11 @@ function setup(page) {
 	// [ 'onConfirm', 'onPrompt' ] // todo: need user feedback
 	[ 'onAlert', 'onConsoleMessage', 'onError', 'onInitialized', 'onLoadFinished', 'onLoadStarted', 'onResourceRequested', 'onResourceReceived', 'onUrlChanged' ].forEach(function(callback) {
 		page[callback] = function() {
-			send(id, -1, callback, Array.prototype.slice.call(arguments));
+			send({
+				page : id,
+				command_id : -1,
+				command : callback
+			}, Array.prototype.slice.call(arguments));
 		};
 	});
 	pages[id] = page;
@@ -27,11 +31,11 @@ function setup(page) {
 }
 
 controller.onConsoleMessage = function(msg) {
-	return console.log("console: " + msg);
+	console.log("console: " + msg);
 };
 
 controller.open("http://127.0.0.1:" + port, function(status) {
-	console.log("controller: " + status);
+	// console.log("controller: " + status);
 });
 
 controller.onAlert = function(msg) {
@@ -39,20 +43,55 @@ controller.onAlert = function(msg) {
 	if (data.page === "Phantom") {
 		switch (data.command) {
 			case "createPage":
-				send(data.page, data.command_id, "createPage", [ setup(webpage.create()) ]);
+				send(data, [ setup(webpage.create()) ]);
 				break;
+
 			case "injectJs":
-				send(data.page, data.command_id, "injectJs", [ phantom.injectJs.apply(phantom, data.args) ]);
+			case "addCookie":
+			case "deleteCookie":
+				send(data, [ phantom[data.command].apply(phantom, data.args) ]);
 				break;
+
+			case "clearCookies":
+				phantom[data.command].apply(phantom, data.args);
+				send(data);
+				break;
+
 			case "exit":
 				Object.keys(pages).forEach(function(page) {
 					pages[page].close();
 				});
-				send(data.page, data.command_id, "exit");
+				send(data);
 				break;
+
 			case "done":
 				phantom.exit();
 				break;
+
+			case "get":
+				var temp = {}, k;
+				if (typeof data.args[0] === "string") {
+					send(data, [ phantom[data.args[0]] ]);
+				} else {
+					for (k in data.args[0]) {
+						temp[k] = phantom[k];
+					}
+					send(data, [ temp ]);
+				}
+				break;
+
+			case "set":
+				var k;
+				if (typeof data.args[0] === "string") {
+					phantom[data.args[0]] = data.args[1];
+				} else {
+					for (k in data.args[0]) {
+						phantom[k] = data.args[0][k];
+					}
+				}
+				send(data);
+				break;
+
 			default:
 				console.log("Unknown command: " + data.command);
 				break;
@@ -62,44 +101,67 @@ controller.onAlert = function(msg) {
 		switch (data.command) {
 			case "clearCookies": // ()` {void}
 			case "close": // ()` {void}
-			case "release": // ()` {void}
 			case "render": // (filename)` {void}
 			case "sendEvent": // (type, mouseX, mouseY)`
 			case "uploadFile": // (selector, filename)`
 				page[data.command].apply(page, data.args);
-				send(data.page, data.command_id, data.command);
+				send(data);
 				break;
 
 			case "addCookie": // (cookie)` {boolean}
 			case "deleteCookie": // (cookieName)` {boolean}
 			case "injectJs": // (filename)` {boolean}
 			case "renderBase64": // (format)`
-				send(data.page, data.command_id, data.command, [ page[data.command].apply(page, data.args) ]);
+				send(data, [ page[data.command].apply(page, data.args) ]);
 				break;
 
 			case "evaluate": // (function, arg1, arg2, ...)` {object}
-				console.log("hi");
 				var args = data.args[1].slice(0);
 				args.unshift((new Function("return " + data.args[0]))());
-				send(data.page, data.command_id, data.command, [ page.evaluate.apply(page, args) ]);
+				send(data, [ page.evaluate.apply(page, args) ]);
 				break;
 
 			case "evaluateAsync": // (function)` {void}
 				page.evaluateAsync((new Function("return " + data.args[0]))());
-				send(data.page, data.command_id, data.command);
+				send(data);
 				break;
 
 			case "includeJs": // (url, callback)` {void}
 				page.includeJs(data.args[0], function() {
-					send(data.page, data.command_id, data.command);
+					send(data);
 				});
 				break;
 
 			case "open": // (url, callback)` {void}
 				page.open(data.args[0], function() {
-					send(data.page, data.command_id, data.command);
+					send(data);
 				});
 				break;
+
+			case "get":
+				var temp = {}, k;
+				if (typeof data.args[0] === "string") {
+					send(data, [ page[data.args[0]] ]);
+				} else {
+					for (k in data.args[0]) {
+						temp[k] = page[k];
+					}
+					send(data, [ temp ]);
+				}
+				break;
+
+			case "set":
+				var k;
+				if (typeof data.args[0] === "string") {
+					page[data.args[0]] = data.args[1];
+				} else {
+					for (k in data.args[0]) {
+						page[k] = data.args[0][k];
+					}
+				}
+				send(data);
+				break;
+
 			default:
 				console.log("Unknown command: " + data.command);
 				break;
