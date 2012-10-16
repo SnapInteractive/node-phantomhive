@@ -4,7 +4,9 @@ var io = require("socket.io");
 var child_process = require("child_process");
 var Page = require("./Page");
 
+var instance_id = 1;
 var Phantom = function() {
+	this.id = "Phantom-" + instance_id++;
 	this.activeRequests = {};
 	this.pages = {};
 };
@@ -21,10 +23,10 @@ Phantom.listen = function(callback, port) {
 Phantom.prototype.id = "Phantom";
 Phantom.prototype.cid = 0;
 Phantom.prototype.socket = null;
+Phantom.prototype.pages = null;
 Phantom.prototype.activeRequests = null;
 Phantom.prototype._process = null;
 Phantom.prototype._server = null;
-Phantom.prototype._io = null;
 
 Phantom.prototype.getCommandId = function() {
 	return ++this.cid;
@@ -99,7 +101,7 @@ Phantom.prototype._startServer = function(port, callback) {
 		html.push("<script src='/socket.io/socket.io.js'></script>");
 		html.push("<script>");
 		html.push('window.onload = function() {');
-		html.push('window.socket = new io.connect("http://" + window.location.hostname + ":" + ' + port + ');');
+		html.push('window.socket = new io.connect("http://127.0.0.1:' + port + '/' + self.id + '");');
 		html.push('socket.on("exec", function(data){ alert(data); });');
 		html.push('};');
 		html.push("</script>");
@@ -108,21 +110,19 @@ Phantom.prototype._startServer = function(port, callback) {
 		response.end(html.join(""));
 	}).listen(port);
 
-	this._io = io.listen(this._server, {
+	io.listen(this._server, {
 		'log level' : 1,
 		transports : [ 'websocket' ]
-	}).sockets.on("connection", function(socket) {
-		self._onConnected(socket);
+	}).of('/' + self.id).on("connection", function(socket) {
+		self.socket = socket;
+		// console.log(self.instance_id);
+		socket.on("exec", function(data) {
+			self._onReceive(data);
+		});
+
 		if (callback) {
 			callback.call(self, self);
 		}
-	});
-};
-
-Phantom.prototype._onConnected = function(socket) {
-	this.socket = socket, self = this;
-	socket.on("exec", function(data) {
-		self._onReceive(data);
 	});
 };
 
@@ -152,7 +152,7 @@ Phantom.prototype._onReceive = function(data) {
 	} else if (this.pages[data.page]) {
 		this.pages[data.page]._onReceive(data);
 	} else {
-		console.log("Unknown page id: " + data.page);
+		console.log("Unknown page id: " + data.page + " " + this.id);
 	}
 };
 

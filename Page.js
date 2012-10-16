@@ -69,12 +69,13 @@ Page.prototype._onReceive = function(data) {
 				this.activeRequests[data.command_id](data.args);
 			}
 			break;
+		case "onError":
+			data.command = "onJsEror";
 		case "onAlert":
 		case "onCallback":
 		case "onClosing":
 		case "onConfirm":
 		case "onConsoleMessage":
-		case "onError":
 		case "onInitialized":
 		case "onLoadFinished":
 		case "onLoadStarted":

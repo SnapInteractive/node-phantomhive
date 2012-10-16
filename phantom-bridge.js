@@ -40,7 +40,7 @@ controller.open("http://127.0.0.1:" + port, function(status) {
 
 controller.onAlert = function(msg) {
 	var data = JSON.parse(msg);
-	if (data.page === "Phantom") {
+	if (/^Phantom-/.test(data.page)) {
 		switch (data.command) {
 			case "createPage":
 				send(data, [ setup(webpage.create()) ]);
