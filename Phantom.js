@@ -9,7 +9,6 @@ var Phantom = function() {
 	this.pages = {};
 };
 
-util.inherits(Phantom, require("./CallbackBridge").CallbackBridge);
 module.exports = Phantom;
 
 Phantom.PORT = 18080;
@@ -20,9 +19,37 @@ Phantom.listen = function(callback, port) {
 };
 
 Phantom.prototype.id = "Phantom";
+Phantom.prototype.cid = 0;
+Phantom.prototype.socket = null;
+Phantom.prototype.activeRequests = null;
 Phantom.prototype._process = null;
 Phantom.prototype._server = null;
 Phantom.prototype._io = null;
+
+Phantom.prototype.getCommandId = function() {
+	return ++this.cid;
+};
+
+Phantom.prototype.send = function(command, callback, args) {
+	var self = this, id = this.getCommandId();
+	var data = {
+		page : this.id,
+		command_id : id,
+		command : command,
+		args : args || []
+	};
+	// console.log("send", data);
+
+	this.socket.emit("exec", JSON.stringify(data));
+
+	this.activeRequests[id] = function(args) {
+		delete self.activeRequests[id];
+		if (callback) {
+			callback.apply(self, args || []);
+		}
+	};
+	return id;
+};
 
 Phantom.prototype.listen = function(callback, options) {
 	if (this._process) {

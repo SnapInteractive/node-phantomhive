@@ -1,13 +1,44 @@
 var util = require("util");
+var EventEmitter = require("events").EventEmitter;
 
 var Page = function(id, socket) {
+	EventEmitter.call(this);
 	this.id = id;
 	this.activeRequests = {};
 	this.socket = socket;
 };
 
-util.inherits(Page, require("./CallbackBridge").CallbackBridge);
+util.inherits(Page, EventEmitter);
 module.exports = Page;
+
+Page.prototype.id = 0;
+Page.prototype.cid = 0;
+Page.prototype.socket = null;
+Page.prototype.activeRequests = null;
+Page.prototype.getCommandId = function() {
+	return ++this.cid;
+};
+
+Page.prototype.send = function(command, callback, args) {
+	var self = this, id = this.getCommandId();
+	var data = {
+		page : this.id,
+		command_id : id,
+		command : command,
+		args : args || []
+	};
+	// console.log("send", data);
+
+	this.socket.emit("exec", JSON.stringify(data));
+
+	this.activeRequests[id] = function(args) {
+		delete self.activeRequests[id];
+		if (callback) {
+			callback.apply(self, args || []);
+		}
+	};
+	return id;
+};
 
 Page.prototype._onConnected = function(socket) {
 	this.socket = socket, self = this;
@@ -53,7 +84,9 @@ Page.prototype._onReceive = function(data) {
 		case "onResourceReceived":
 		case "onUrlChanged":
 			// console.log(data.command, data.args);
-			// this["_" + data.command](data);
+			var args = data.args.slice(0);
+			args.unshift(data.command[2].toLowerCase() + data.command.replace(/^on\w/, ""));
+			this.emit.apply(this, args);
 			break;
 		default:
 			console.log("Unknown command: " + data.command);
