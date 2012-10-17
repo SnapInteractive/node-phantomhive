@@ -34,12 +34,11 @@ controller.onConsoleMessage = function(msg) {
 	console.log("console: " + msg);
 };
 
-controller.open("http://127.0.0.1:" + port, function(status) {
-	// console.log("controller: " + status);
+controller.open("http://127.0.0.1:" + port, function() {
 });
 
 controller.onAlert = function(msg) {
-	var data = JSON.parse(msg);
+	var data = JSON.parse(msg), k, j, temp;
 	if (/^Phantom-/.test(data.page)) {
 		switch (data.command) {
 			case "createPage":
@@ -69,7 +68,7 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "get":
-				var temp = {}, k;
+				temp = {};
 				if (typeof data.args[0] === "string") {
 					send(data, [ phantom[data.args[0]] ]);
 				} else {
@@ -81,7 +80,6 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "set":
-				var k;
 				if (typeof data.args[0] === "string") {
 					phantom[data.args[0]] = data.args[1];
 				} else {
@@ -116,12 +114,14 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "evaluate": // (function, arg1, arg2, ...)` {object}
+				/*jshint evil:true */
 				var args = (data.args[1] || []).slice(0);
 				args.unshift((new Function("return " + data.args[0]))());
 				send(data, [ page.evaluate.apply(page, args) ]);
 				break;
 
 			case "evaluateAsync": // (function)` {void}
+				/*jshint evil:true */
 				page.evaluateAsync((new Function("return " + data.args[0]))());
 				send(data);
 				break;
@@ -140,7 +140,7 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "get":
-				var temp = {}, k;
+				temp = {};
 				if (typeof data.args[0] === "string") {
 					send(data, [ page[data.args[0]] ]);
 				} else {
@@ -152,7 +152,6 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "set":
-				var k, j;
 				if (typeof data.args[0] === "string") {
 					if (data.args[0] === "settings") {
 						for (k in data.args[1]) {
@@ -164,8 +163,8 @@ controller.onAlert = function(msg) {
 				} else {
 					for (k in data.args[0]) {
 						if (k === "settings") {
-							for (l in data.args[0][k]) {
-								page.settings[l] = data.args[k][l];
+							for (j in data.args[0][k]) {
+								page.settings[j] = data.args[k][j];
 							}
 						} else {
 							page[k] = data.args[0][k];

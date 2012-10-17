@@ -1,4 +1,3 @@
-var util = require("util");
 var http = require("http");
 var io = require("socket.io");
 var child_process = require("child_process");
@@ -81,8 +80,6 @@ Phantom.prototype._startPhantomProcess = function(options) {
 	});
 	phantom.stderr.on("data", function(data) {
 		console.warn("phantom: " + data);
-	});
-	phantom.stderr.on("exit", function(data) {
 	});
 	this._process = phantom;
 	return phantom;
@@ -176,6 +173,7 @@ Phantom.prototype.get = function(key, callback) {
 	// libraryPath {string}
 	// version {object}
 	this.send("get", callback, [ key ]);
+	return this;
 };
 
 Phantom.prototype.set = function(key, value, callback) {
@@ -183,26 +181,32 @@ Phantom.prototype.set = function(key, value, callback) {
 	// cookiesEnabled {boolean}
 	// libraryPath {string}
 	this.send("set", callback, [ key, value ]);
+	return this;
 };
 
 Phantom.prototype.addCookie = function(cookie, callback) {
 	this.send("addCookie", callback, [ cookie ]);
+	return this;
 };
 
 Phantom.prototype.deleteCookie = function(cookieName, callback) {
 	this.send("deleteCookie", callback, [ cookieName ]);
+	return this;
 };
 
 Phantom.prototype.clearCookies = function(callback) {
 	this.send("clearCookies", callback);
+	return this;
 };
 
 Phantom.prototype.createPage = function(callback) {
 	this.send("createPage", callback);
+	return this;
 };
 
 Phantom.prototype.injectJs = function(filename, callback) {
 	this.send("injectJs", callback, [ filename ]);
+	return this;
 };
 
 Phantom.prototype.exit = function(callback) {
@@ -210,4 +214,5 @@ Phantom.prototype.exit = function(callback) {
 		this._server.close();
 		this.send("done", callback);
 	});
+	return this;
 };

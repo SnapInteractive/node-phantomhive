@@ -40,14 +40,8 @@ Page.prototype.send = function(command, callback, args) {
 	return id;
 };
 
-Page.prototype._onConnected = function(socket) {
-	this.socket = socket, self = this;
-	socket.on("exec", function(data) {
-		self._onReceive(data);
-	});
-};
-
 Page.prototype._onReceive = function(data) {
+	var args = (data.args || []).slice(0);
 	// console.log("page response", data);
 	switch (data.command) {
 		case "addCookie": // (cookie)` {boolean}
@@ -70,7 +64,10 @@ Page.prototype._onReceive = function(data) {
 			}
 			break;
 		case "onError":
-			data.command = "onJsEror";
+			// console.log(data.command, data.args);
+			args.unshift("jsError");
+			this.emit.apply(this, args);
+			break;
 		case "onAlert":
 		case "onCallback":
 		case "onClosing":
@@ -85,7 +82,6 @@ Page.prototype._onReceive = function(data) {
 		case "onResourceReceived":
 		case "onUrlChanged":
 			// console.log(data.command, data.args);
-			var args = data.args.slice(0);
 			args.unshift(data.command[2].toLowerCase() + data.command.replace(/^on\w/, ""));
 			this.emit.apply(this, args);
 			break;
@@ -95,47 +91,53 @@ Page.prototype._onReceive = function(data) {
 	}
 };
 
-var basicCallback = function(data) {
-	if (this.activeRequests[data.command_id]) {
-		this.activeRequests[data.command_id](data.args);
-	}
-};
-
 Page.prototype.addCookie = function(cookie, callback) {
 	this.send("addCookie", callback, [ cookie ]);
+	return this;
 };
 Page.prototype.clearCookies = function(callback) {
 	this.send("clearCookies", callback);
+	return this;
 };
 Page.prototype.close = function(callback) {
 	this.send("close", callback);
+	return this;
 };
 Page.prototype.evaluate = function(fn, args, callback) {
 	this.send("evaluate", callback, [ fn.toString(), args ]);
+	return this;
 };
 Page.prototype.evaluateAsync = function(fn, callback) {
 	this.send("evaluateAsync", callback, [ fn.toString() ]);
+	return this;
 };
 Page.prototype.includeJs = function(url, callback) {
 	this.send("includeJs", callback, [ url ]);
+	return this;
 };
 Page.prototype.injectJs = function(filename, callback) {
 	this.send("injectJs", callback, [ filename ]);
+	return this;
 };
 Page.prototype.open = function(url, callback) {
 	this.send("open", callback, [ url ]);
+	return this;
 };
 Page.prototype.render = function(filename, callback) {
 	this.send("render", callback, [ filename ]);
+	return this;
 };
 Page.prototype.renderBase64 = function(format, callback) {
 	this.send("renderBase64", callback, [ format ]);
+	return this;
 };
 Page.prototype.sendEvent = function(type, mouseX, mouseY, callback) {
 	this.send("sendEvent", callback, [ type, mouseX, mouseY ]);
+	return this;
 };
 Page.prototype.uploadFile = function(selector, filename, callback) {
 	this.send("uploadFile", callback, [ selector, filename ]);
+	return this;
 };
 
 Page.prototype.get = function(key, callback) {
@@ -155,6 +157,7 @@ Page.prototype.get = function(key, callback) {
 	// `viewportSize` {object}
 	// `zoomFactor` {number}
 	this.send("get", callback, [ key ]);
+	return this;
 };
 
 Page.prototype.set = function(key, value, callback) {
@@ -171,4 +174,5 @@ Page.prototype.set = function(key, value, callback) {
 	// `viewportSize` {object}
 	// `zoomFactor` {number}
 	this.send("set", callback, [ key, value ]);
+	return this;
 };
