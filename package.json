@@ -1,12 +1,24 @@
 {
     "name": "phantomhive",
     "description": "Manage phantomjs processes with nodejs.",
-    "keywords": [],
+    "keywords": [
+        "cli",
+        "remote",
+        "testing",
+        "phantomjs",
+        "stress testing",
+        "headless",
+        "browser"
+    ],
     "author": "Wei Kin Huang <wei@closedinterval.com>",
     "contributors": [
         {
             "name": "Man Hoang",
             "email": "mhoang@snap-interactive.com"
+        },
+        {
+            "name": "Devin Cooper",
+            "email": "dcooper@snap-interactive.com"
         }
     ],
     "version": "0.2.0",

@@ -1,6 +1,6 @@
 module.exports = function(build) {
 	// set basic info about the repo
-	build.setNameVersion("classify", "0.2.0");
+	build.setNameVersion("phantomhive", "0.2.0");
 
 	// set the url of this repo
 	build.setRepoName("https://github.com/weikinhuang/node-phantomhive");
@@ -40,11 +40,14 @@ module.exports = function(build) {
 		desc : {
 			name : "phantomhive",
 			description : "Manage phantomjs processes with nodejs.",
-			keywords : [],
+			keywords : [ "cli", "remote", "testing", "phantomjs", "stress testing", "headless", "browser" ],
 			author : "Wei Kin Huang <wei@closedinterval.com>",
 			contributors : [ {
 				name : "Man Hoang",
 				email : "mhoang@snap-interactive.com"
+			}, {
+				name : "Devin Cooper",
+				email : "dcooper@snap-interactive.com"
 			} ],
 			version : "@VERSION",
 			homepage : "https://github.com/weikinhuang/node-phantomhive",
