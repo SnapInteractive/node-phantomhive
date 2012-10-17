@@ -21,7 +21,7 @@ function send(passthrough, args) {
 function setup(page) {
 	var id = ++pageuuid;
 	// [ "onConfirm", "onPrompt" ] // todo: need user feedback
-	[ "onAlert", "onConsoleMessage", "onError", "onInitialized", "onLoadFinished", "onLoadStarted", "onResourceRequested", "onResourceReceived", "onUrlChanged" ].forEach(function(callback) {
+	[ "onAlert", "onCallback", "onClosing", "onConsoleMessage", "onError", "onInitialized", "onLoadFinished", "onLoadStarted", "onNavigationRequested", "onResourceRequested", "onResourceReceived", "onUrlChanged" ].forEach(function(callback) {
 		page[callback] = function() {
 			send({
 				page : id,
@@ -62,7 +62,7 @@ controller.onAlert = function(msg) {
 
 			case "exit":
 				Object.keys(pages).forEach(function(page) {
-					pages[page].close();
+					(pages[page].close || pages[page].release)();
 				});
 				send(data);
 				break;
@@ -102,11 +102,15 @@ controller.onAlert = function(msg) {
 		var page = pages[data.page];
 		switch (data.command) {
 			case "clearCookies": // ()` {void}
-			case "close": // ()` {void}
 			case "render": // (filename)` {void}
 			case "sendEvent": // (type, mouseX, mouseY)`
 			case "uploadFile": // (selector, filename)`
 				page[data.command].apply(page, data.args);
+				send(data);
+				break;
+
+			case "close": // ()` {void}
+				(page.close || page.release).apply(page, data.args);
 				send(data);
 				break;
 

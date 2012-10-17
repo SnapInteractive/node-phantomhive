@@ -60,6 +60,9 @@ Phantom.prototype.listen = function(callback, options) {
 	if (this._process) {
 		return this;
 	}
+	if (!options) {
+		options = {};
+	}
 	if (typeof options === "number") {
 		var port = options;
 		options = {
@@ -84,6 +87,9 @@ Phantom.prototype._startPhantomProcess = function(options) {
 	});
 	phantom.stderr.on("data", function(data) {
 		console.warn("phantom: " + data);
+	});
+	process.on("exit", function() {
+		phantom.kill();
 	});
 	this._process = phantom;
 	return phantom;
