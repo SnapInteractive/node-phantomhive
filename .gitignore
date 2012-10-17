@@ -1,11 +1,7 @@
-.settings
+.*
 *~
 *.diff
 *.patch
-.DS_Store
-.externalToolBuilders
-.buildpath
-.project
 
 lib-cov
 *.seed
@@ -15,6 +11,10 @@ lib-cov
 *.out
 *.pid
 *.gz
+*.png
+*.jpg
+*.jpeg
+*.bmp
 
 pids
 logs
@@ -22,3 +22,5 @@ results
 
 node_modules
 npm-debug.log
+
+coverage/*

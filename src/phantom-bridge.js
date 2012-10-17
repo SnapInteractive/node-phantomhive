@@ -15,13 +15,13 @@ function send(passthrough, args) {
 		command : passthrough.command,
 		args : args || []
 	};
-	controller.evaluate('function(){socket.emit("exec",' + JSON.stringify(data) + ');}');
+	controller.evaluate("function(){socket.emit('exec'," + JSON.stringify(data) + ");}");
 }
 
 function setup(page) {
 	var id = ++pageuuid;
-	// [ 'onConfirm', 'onPrompt' ] // todo: need user feedback
-	[ 'onAlert', 'onConsoleMessage', 'onError', 'onInitialized', 'onLoadFinished', 'onLoadStarted', 'onResourceRequested', 'onResourceReceived', 'onUrlChanged' ].forEach(function(callback) {
+	// [ "onConfirm", "onPrompt" ] // todo: need user feedback
+	[ "onAlert", "onConsoleMessage", "onError", "onInitialized", "onLoadFinished", "onLoadStarted", "onResourceRequested", "onResourceReceived", "onUrlChanged" ].forEach(function(callback) {
 		page[callback] = function() {
 			send({
 				page : id,

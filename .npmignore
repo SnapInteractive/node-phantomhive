@@ -1,6 +1,10 @@
 .*
 config.js
 make.js
+*.png
+*.jpg
+*.jpeg
+*.bmp
 
 build/*
 coverage/*

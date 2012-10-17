@@ -28,7 +28,7 @@ module.exports = function(build) {
 			undef : true,
 			strict : false,
 			node : true,
-			// quotmark : "double",
+			quotmark : "double",
 			// maxcomplexity : 7,
 			predef : [ "phantom" ]
 		}

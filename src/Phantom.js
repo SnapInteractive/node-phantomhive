@@ -101,10 +101,10 @@ Phantom.prototype._startServer = function(port, callback) {
 		var html = [ "<html><head>" ];
 		html.push("<script src='/socket.io/socket.io.js'></script>");
 		html.push("<script>");
-		html.push('window.onload = function() {');
-		html.push('window.socket = new io.connect("http://127.0.0.1:' + port + '/' + self.id + '");');
-		html.push('socket.on("exec", function(data){ alert(data); });');
-		html.push('};');
+		html.push("window.onload = function() {");
+		html.push("window.socket = new io.connect('http://127.0.0.1:" + port + "/" + self.id + "');");
+		html.push("socket.on('exec', function(data){ alert(data); });");
+		html.push("};");
 		html.push("</script>");
 		html.push("</head><body></body></html>");
 		// we want to write out the script tags to connect with socket io
@@ -112,9 +112,9 @@ Phantom.prototype._startServer = function(port, callback) {
 	}).listen(port);
 
 	io.listen(this._server, {
-		'log level' : 1,
-		transports : [ 'websocket' ]
-	}).of('/' + self.id).on("connection", function(socket) {
+		"log level" : 1,
+		transports : [ "websocket" ]
+	}).of("/" + self.id).on("connection", function(socket) {
 		self.socket = socket;
 		// console.log(self.instance_id);
 		socket.on("exec", function(data) {
