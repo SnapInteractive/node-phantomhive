@@ -2,4 +2,4 @@
  * node-phantomhive
  * MIT Licensed
  */
-module.exports = require('./Phantom');
+module.exports = require('./src/Phantom.js');
