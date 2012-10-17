@@ -1,0 +1,9 @@
+.*
+config.js
+make.js
+
+build/*
+coverage/*
+docs/*
+perf/*
+test/*
