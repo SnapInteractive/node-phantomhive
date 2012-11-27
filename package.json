@@ -10,8 +10,12 @@
         "headless",
         "browser"
     ],
-    "author": "Wei Kin Huang <wei@closedinterval.com>",
+    "author": "SNAP Interactive, Inc.",
     "contributors": [
+        {
+            "name": "Wei Kin Huang",
+            "email": "whuang@snap-interactive.com"
+        },
         {
             "name": "Man Hoang",
             "email": "mhoang@snap-interactive.com"
@@ -22,23 +26,23 @@
         }
     ],
     "version": "0.2.0",
-    "homepage": "https://github.com/weikinhuang/node-phantomhive",
+    "homepage": "https://github.com/SnapInteractive/node-phantomhive",
     "repository": {
         "type": "git",
-        "url": "https://github.com/weikinhuang/node-phantomhive.git"
+        "url": "https://github.com/SnapInteractive/node-phantomhive.git"
     },
     "bugs": {
-        "url": "https://github.com/weikinhuang/node-phantomhive/issues"
+        "url": "https://github.com/SnapInteractive/node-phantomhive/issues"
     },
     "licenses": [
         {
-            "type": "MIT",
-            "url": "https://github.com/weikinhuang/node-phantomhive/blob/master/MIT-LICENSE.txt"
+            "type": "Apache-2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0"
         }
     ],
     "main": "src/Phantom.js",
     "dependencies": {
-        "socket.io": "0.9.10"
+        "socket.io": ">=0.9.10"
     },
     "engines": {
         "node": "0.8.x"
