@@ -8,7 +8,7 @@ phantomjs.listen(function(phantom) {
 				page.evaluate(function() {
 					return document.title;
 				}, [ 1, 2, 3 ], function(val) {
-					console.log('done eval', val);
+					console.log("done eval", val);
 					phantom.exit();
 				});
 			}, 5000);

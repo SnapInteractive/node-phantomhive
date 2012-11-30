@@ -1,7 +1,3 @@
-/*!
- * node-phantomhive
- * MIT Licensed
- */
 var util = require("util");
 var EventEmitter = require("events").EventEmitter;
 
