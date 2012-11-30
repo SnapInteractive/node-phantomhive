@@ -13,6 +13,27 @@ var Page = require("./Page");
 var instance_id = 1;
 
 /**
+ * Reference to all open child phantomjs processes
+ *
+ * @type {Object}
+ */
+var open_forks = {};
+
+/**
+ * Hook into the exit event
+ *
+ * @event
+ */
+process.on("exit", function() {
+	Object.keys(open_forks).forEach(function(phantom, k) {
+		if (!open_forks[k]) {
+			return;
+		}
+		phantom.kill();
+	});
+});
+
+/**
  * The phantomjs process controller/server
  *
  * @constructor
@@ -189,16 +210,18 @@ Phantom.prototype._startPhantomProcess = function(options) {
 		return this._process;
 	}
 	// create the phantomjs instance
-	var phantom = child_process.spawn("phantomjs", [ __dirname + "/phantom-bridge.js", options.port ]);
+	var self = this, phantom = child_process.spawn("phantomjs", [ __dirname + "/phantom-bridge.js", options.port ]);
 	phantom.stdout.on("data", function(data) {
 		console.log("phantom: " + data);
 	});
 	phantom.stderr.on("data", function(data) {
 		console.warn("phantom: " + data);
 	});
-	process.on("exit", function() {
-		phantom.kill();
+	phantom.on("exit", function() {
+		delete open_forks[self.id];
 	});
+	// keep global reference so we can kill them all
+	open_forks[this.id] = phantom;
 	this._process = phantom;
 	return phantom;
 };
@@ -430,15 +453,15 @@ Phantom.prototype.injectJs = function(filename, callback) {
  * End this phantom instance and shutdown listeners
  *
  * @memberOf Phantom
- * @param {Function} callback
  * @public
  * @returns {Phantom}
  * @type {Phantom}
  */
-Phantom.prototype.exit = function(callback) {
+Phantom.prototype.exit = function() {
 	this.send("exit", function() {
 		this._server.close();
-		this.send("done", callback);
+		this.send("done");
+		this.socket.disconnect();
 	});
 	return this;
 };
