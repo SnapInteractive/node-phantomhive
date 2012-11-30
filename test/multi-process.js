@@ -13,7 +13,7 @@ var phantomjs = require("../");
 					}, [ 1, 2, 3 ], function(val) {
 						console.log("done eval", val);
 					});
-				}, 5000);
+				}, 1000);
 			});
 		});
 		// phantom.exit();

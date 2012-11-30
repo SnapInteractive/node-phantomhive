@@ -13,7 +13,7 @@ phantomjs.listen(function(phantom) {
 					console.log("done eval", val);
 					phantom.exit();
 				});
-			}, 5000);
+			}, 1000);
 		});
 	});
 });

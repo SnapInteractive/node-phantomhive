@@ -5,34 +5,125 @@ var io = require("socket.io");
 var child_process = require("child_process");
 var Page = require("./Page");
 
+/**
+ * Global phantom level instance id
+ *
+ * @type {Number}
+ */
 var instance_id = 1;
+
+/**
+ * The phantomjs process controller/server
+ *
+ * @constructor
+ * @static
+ * @type {Object}
+ */
 var Phantom = function() {
 	this.id = "Phantom-" + instance_id++;
 	this.activeRequests = {};
 	this.pages = {};
 };
 
+// Export this module
 module.exports = Phantom;
 
+/**
+ * The default port to route internal socket.io requests
+ *
+ * @constant
+ * @memberOf Phantom
+ * @static
+ * @type {Number}
+ */
 Phantom.PORT = 18080;
 
+/**
+ * Static bootstrap function to start a phantomjs process and start listening for events
+ *
+ * @memberOf Phantom
+ * @static
+ * @returns {Phantom}
+ * @type {Phantom}
+ */
 Phantom.listen = function(callback, port) {
 	var phantom = new Phantom();
 	return phantom.listen(callback, port);
 };
 
+/**
+ * Internal instance identifier
+ *
+ * @memberOf Phantom
+ * @type {String}
+ */
 Phantom.prototype.id = "Phantom";
+/**
+ * Internal command counter
+ *
+ * @memberOf Phantom
+ * @type {Number}
+ */
 Phantom.prototype.cid = 0;
+/**
+ * Internal socket.io handler
+ *
+ * @memberOf Phantom
+ * @type {Object}
+ */
 Phantom.prototype.socket = null;
+/**
+ * Hash containing all the pages created through this instance
+ *
+ * @memberOf Phantom
+ * @type {Object} of Page objects
+ */
 Phantom.prototype.pages = null;
+/**
+ * Hash containing all the active requests to the page instances
+ *
+ * @memberOf Phantom
+ * @type {Object}
+ */
 Phantom.prototype.activeRequests = null;
+/**
+ * Forked process handler
+ *
+ * @memberOf Phantom
+ * @type {Object}
+ */
 Phantom.prototype._process = null;
+/**
+ * The Socket.io server to communicate with the phantomjs bridge script
+ *
+ * @memberOf Phantom
+ * @type {Object}
+ */
 Phantom.prototype._server = null;
 
+/**
+ * Retrieve the next available command counter
+ *
+ * @memberOf Phantom
+ * @private
+ * @returns {Number}
+ * @type {Number}
+ */
 Phantom.prototype.getCommandId = function() {
 	return ++this.cid;
 };
 
+/**
+ * Sends commands to the bridge process
+ *
+ * @memberOf Phantom
+ * @param {String} command
+ * @param {Function} callback
+ * @param {Array} args
+ * @private
+ * @returns {Number}
+ * @type {Number}
+ */
 Phantom.prototype.send = function(command, callback, args) {
 	var self = this, id = this.getCommandId();
 	var data = {
@@ -54,6 +145,16 @@ Phantom.prototype.send = function(command, callback, args) {
 	return id;
 };
 
+/**
+ * Starts the server and phantomjs child process
+ *
+ * @memberOf Phantom
+ * @param {Function} callback
+ * @param {Object} options
+ * @private
+ * @returns {Phantom}
+ * @type {Phantom}
+ */
 Phantom.prototype.listen = function(callback, options) {
 	if (this._process) {
 		return this;
@@ -74,6 +175,15 @@ Phantom.prototype.listen = function(callback, options) {
 	return this;
 };
 
+/**
+ * Starts the internal phantomjs child process
+ *
+ * @memberOf Phantom
+ * @param {Object} options
+ * @private
+ * @returns {Object}
+ * @type {Object}
+ */
 Phantom.prototype._startPhantomProcess = function(options) {
 	if (this._process) {
 		return this._process;
@@ -93,6 +203,14 @@ Phantom.prototype._startPhantomProcess = function(options) {
 	return phantom;
 };
 
+/**
+ * Start the communication layer between this process and the phantomjs fork
+ *
+ * @memberOf Phantom
+ * @param {Number} port
+ * @param {Function} callback
+ * @private
+ */
 Phantom.prototype._startServer = function(port, callback) {
 	if (this._server) {
 		return this._server;
@@ -131,6 +249,13 @@ Phantom.prototype._startServer = function(port, callback) {
 	});
 };
 
+/**
+ * Internal callback for listening to events from the phantomjs process
+ *
+ * @memberOf Phantom
+ * @param {Object} data
+ * @private
+ */
 Phantom.prototype._onReceive = function(data) {
 	// console.log("response", data);
 	if (data.page === this.id) {
@@ -161,6 +286,13 @@ Phantom.prototype._onReceive = function(data) {
 	}
 };
 
+/**
+ * Create a new phantomjs webpage
+ *
+ * @memberOf Phantom
+ * @param {Object} data
+ * @private
+ */
 Phantom.prototype._createPage = function(data) {
 	var error = null, page = null;
 	if (this.pages[data.args[0]]) {
@@ -175,6 +307,16 @@ Phantom.prototype._createPage = function(data) {
 	}
 };
 
+/**
+ * Retrieve (a) option variable from the phantomjs browser
+ *
+ * @memberOf Phantom
+ * @param {String} key
+ * @param {Function}callback
+ * @public
+ * @returns {Phantom}
+ * @type {Phantom}
+ */
 Phantom.prototype.get = function(key, callback) {
 	// cookies {array}
 	// cookiesEnabled {boolean}
@@ -184,6 +326,17 @@ Phantom.prototype.get = function(key, callback) {
 	return this;
 };
 
+/**
+ * Sets (a) option variable to the phantomjs browser
+ *
+ * @memberOf Phantom
+ * @param {String} key
+ * @param {Object} value
+ * @param {Function} callback
+ * @public
+ * @returns {Phantom}
+ * @type {Phantom}
+ */
 Phantom.prototype.set = function(key, value, callback) {
 	// cookies {array}
 	// cookiesEnabled {boolean}
@@ -192,31 +345,89 @@ Phantom.prototype.set = function(key, value, callback) {
 	return this;
 };
 
+/**
+ * Add (a) global cookie to the phantomjs browser
+ *
+ * @memberOf Phantom
+ * @param {Object} cookie
+ * @param {Function} callback
+ * @public
+ * @returns {Phantom}
+ * @type {Phantom}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-cookie
+ */
 Phantom.prototype.addCookie = function(cookie, callback) {
 	this.send("addCookie", callback, [ cookie ]);
 	return this;
 };
 
+/**
+ * Delete (a) global cookie from the phantomjs browser
+ *
+ * @memberOf Phantom
+ * @param {String} cookieName
+ * @param {Function} callback
+ * @public
+ * @returns {Phantom}
+ * @type {Phantom}
+ */
 Phantom.prototype.deleteCookie = function(cookieName, callback) {
 	this.send("deleteCookie", callback, [ cookieName ]);
 	return this;
 };
 
+/**
+ * Remove all cookies from the phantomjs browser
+ *
+ * @memberOf Phantom
+ * @param {Function} callback
+ * @public
+ * @returns {Phantom}
+ * @type {Phantom}
+ */
 Phantom.prototype.clearCookies = function(callback) {
 	this.send("clearCookies", callback);
 	return this;
 };
 
+/**
+ * Create a new page instance in the phantomjs browser
+ *
+ * @memberOf Phantom
+ * @param {Function} callback
+ * @public
+ * @returns {Phantom}
+ * @type {Phantom}
+ */
 Phantom.prototype.createPage = function(callback) {
 	this.send("createPage", callback);
 	return this;
 };
 
+/**
+ * Run a javascript file in the phantomjs context in the global level
+ *
+ * @memberOf Phantom
+ * @param {String} filename
+ * @param {Function} callback
+ * @public
+ * @returns {Phantom}
+ * @type {Phantom}
+ */
 Phantom.prototype.injectJs = function(filename, callback) {
 	this.send("injectJs", callback, [ filename ]);
 	return this;
 };
 
+/**
+ * End this phantom instance and shutdown listeners
+ *
+ * @memberOf Phantom
+ * @param {Function} callback
+ * @public
+ * @returns {Phantom}
+ * @type {Phantom}
+ */
 Phantom.prototype.exit = function(callback) {
 	this.send("exit", function() {
 		this._server.close();
