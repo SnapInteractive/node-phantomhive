@@ -1,3 +1,5 @@
+"use strict";
+
 var http = require("http");
 var io = require("socket.io");
 var child_process = require("child_process");

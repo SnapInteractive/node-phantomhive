@@ -1,3 +1,5 @@
+"use strict";
+
 var phantomjs = require("../");
 phantomjs.listen(function(phantom) {
 	this.createPage(function(error, page) {

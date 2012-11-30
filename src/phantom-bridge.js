@@ -1,3 +1,5 @@
+"use strict";
+
 var port = Array.prototype.slice.call(phantom.args, 0).pop();
 var webpage = require("webpage");
 var pages = {};

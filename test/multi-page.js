@@ -1,3 +1,5 @@
+"use strict";
+
 var phantomjs = require("../");
 phantomjs.listen(function(phantom) {
 	[ "http://google.com", "http://yahoo.com" ].forEach(function(uri) {
