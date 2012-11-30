@@ -108,19 +108,19 @@ Page.prototype._onReceive = function(data) {
 	var args = (data.args || []).slice(0);
 	// console.log("page response", data);
 	switch (data.command) {
-		case "addCookie": // (cookie)` {boolean}
-		case "clearCookies": // ()` {void}
-		case "close": // ()` {void}
-		case "deleteCookie": // (cookieName)` {boolean}
-		case "evaluate": // (function, arg1, arg2, ...)` {object}
-		case "evaluateAsync": // (function)` {void}
-		case "includeJs": // (url, callback)` {void}
-		case "injectJs": // (filename)` {boolean}
-		case "open": // (url, callback)` {void}
-		case "render": // (filename)` {void}
-		case "renderBase64": // (format)`
-		case "sendEvent": // (type, mouseX, mouseY)`
-		case "uploadFile": // (selector, filename)`
+		case "addCookie": // (cookie) {boolean}
+		case "clearCookies": // () {void}
+		case "close": // () {void}
+		case "deleteCookie": // (cookieName) {boolean}
+		case "evaluate": // (function, arg1, arg2, ...) {object}
+		case "evaluateAsync": // (function) {void}
+		case "includeJs": // (url, callback) {void}
+		case "injectJs": // (filename) {boolean}
+		case "open": // (url, callback) {void}
+		case "render": // (filename) {void}
+		case "renderBase64": // (format)
+		case "sendEvent": // (type, mouseX, mouseY)
+		case "uploadFile": // (selector, filename)
 		case "get":
 		case "set":
 			if (this.activeRequests[data.command_id]) {
@@ -183,7 +183,7 @@ Page.prototype.addCookie = function(cookie, callback) {
  * @type {Page}
  * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
-Phantom.prototype.deleteCookie = function(cookieName, callback) {
+Page.prototype.deleteCookie = function(cookieName, callback) {
 	this.send("deleteCookie", callback, [ cookieName ]);
 	return this;
 };

@@ -71,6 +71,73 @@ function setup(page) {
 }
 
 /**
+ * Process a data request from the bridge that can be optionally 1 argument or an array of the first possible argument
+ *
+ * @param {Object} context
+ * @param {Object} data
+ */
+function processMultiArrayOptSync(context, data) {
+	if (Array.isArray(data.args[0])) {
+		var temp = [];
+		data.args[0].forEach(function(args) {
+			temp.push(context[data.command].apply(context, [ args ]));
+		});
+		send(data, temp);
+	} else {
+		send(data, [ context[data.command].apply(context, data.args) ]);
+	}
+}
+
+/**
+ * Process a data request from the bridge to get configuration settings. Can be 2 args with string key and mixed value or a hash of multiple settings
+ *
+ * @param {Object} context
+ * @param {Object} data
+ */
+function processGetOptions(context, data) {
+	var temp = {}, k;
+	if (typeof data.args[0] === "string") {
+		send(data, [ context[data.args[0]] ]);
+	} else {
+		for (k in data.args[0]) {
+			temp[k] = context[k];
+		}
+		send(data, [ temp ]);
+	}
+}
+
+/**
+ * Process a data request from the bridge to set configuration settings. Can be 2 args with string key and mixed value or a hash of multiple settings
+ *
+ * @param {Object} context
+ * @param {Object} data
+ */
+function processSetOptions(context, data) {
+	var k, j;
+	if (typeof data.args[0] === "string") {
+		if (data.args[0] === "settings") {
+			for (k in data.args[1]) {
+				context.settings[k] = data.args[1][k];
+			}
+		} else {
+			context[data.args[0]] = data.args[1];
+		}
+	} else {
+		for (k in data.args[0]) {
+			if (k === "settings") {
+				for (j in data.args[0][k]) {
+					context.settings[j] = data.args[k][j];
+				}
+			} else {
+				context[k] = data.args[0][k];
+			}
+		}
+	}
+
+	send(data);
+}
+
+/**
  * The callback for what happens when a console message is triggered from the bridge
  *
  * @event
@@ -81,19 +148,13 @@ controller.onConsoleMessage = function(msg) {
 };
 
 /**
- * Starts the communication channel with the bridge
- */
-controller.open("http://127.0.0.1:" + port, function() {
-});
-
-/**
  * Event listener and delegator for events that come in through the bridge
  *
  * @event
  * @param {String}
  */
 controller.onAlert = function(msg) {
-	var data = JSON.parse(msg), k, j, temp;
+	var data = JSON.parse(msg);
 	if (/^Phantom-/.test(data.page)) {
 		switch (data.command) {
 			case "createPage":
@@ -103,16 +164,7 @@ controller.onAlert = function(msg) {
 			case "injectJs":
 			case "addCookie":
 			case "deleteCookie":
-				// handle arrays of values
-				if (Array.isArray(data.args[0])) {
-					temp = [];
-					data.args[0].forEach(function(args) {
-						temp.push(phantom[data.command].apply(phantom, [ args ]));
-					});
-					send(data, temp);
-				} else {
-					send(data, [ phantom[data.command].apply(phantom, data.args) ]);
-				}
+				processMultiArrayOptSync(phantom, data);
 				break;
 
 			case "clearCookies":
@@ -132,26 +184,11 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "get":
-				temp = {};
-				if (typeof data.args[0] === "string") {
-					send(data, [ phantom[data.args[0]] ]);
-				} else {
-					for (k in data.args[0]) {
-						temp[k] = phantom[k];
-					}
-					send(data, [ temp ]);
-				}
+				processGetOptions(phantom, data);
 				break;
 
 			case "set":
-				if (typeof data.args[0] === "string") {
-					phantom[data.args[0]] = data.args[1];
-				} else {
-					for (k in data.args[0]) {
-						phantom[k] = data.args[0][k];
-					}
-				}
-				send(data);
+				processSetOptions(phantom, data);
 				break;
 
 			default:
@@ -161,57 +198,49 @@ controller.onAlert = function(msg) {
 	} else if (pages[data.page]) {
 		var page = pages[data.page];
 		switch (data.command) {
-			case "clearCookies": // ()` {void}
-			case "render": // (filename)` {void}
-			case "sendEvent": // (type, mouseX, mouseY)`
-			case "uploadFile": // (selector, filename)`
+			case "clearCookies": // () {void}
+			case "render": // (filename) {void}
+			case "sendEvent": // (type, [mouseX, mouseY, button='left'] OR keyOrKeys)
+			case "uploadFile": // (selector, filename)
 				page[data.command].apply(page, data.args);
 				send(data);
 				break;
 
-			case "close": // ()` {void}
+			case "close": // () {void}
 				(page.close || page.release).apply(page, data.args);
 				send(data);
 				break;
 
-			case "addCookie": // (cookie)` {boolean}
-			case "deleteCookie": // (cookieName)` {boolean}
-			case "injectJs": // (filename)` {boolean}
-				if (Array.isArray(data.args[0])) {
-					temp = [];
-					data.args[0].forEach(function(args) {
-						temp.push(phantom[data.command].apply(page, [ args ]));
-					});
-					send(data, temp);
-				} else {
-					send(data, [ phantom[data.command].apply(page, data.args) ]);
-				}
+			case "addCookie": // (cookie) {boolean}
+			case "deleteCookie": // (cookieName) {boolean}
+			case "injectJs": // (filename) {boolean}
+				processMultiArrayOptSync(page, data);
 				break;
 
-			case "renderBase64": // (format)`
+			case "renderBase64": // (format)
 				send(data, [ page[data.command].apply(page, data.args) ]);
 				break;
 
-			case "evaluate": // (function, arg1, arg2, ...)` {object}
+			case "evaluate": // (function, arg1, arg2, ...) {object}
 				/*jshint evil:true */
 				var args = (data.args[1] || []).slice(0);
 				args.unshift((new Function("return " + data.args[0]))());
 				send(data, [ page.evaluate.apply(page, args) ]);
 				break;
 
-			case "evaluateAsync": // (function)` {void}
+			case "evaluateAsync": // (function) {void}
 				/*jshint evil:true */
 				page.evaluateAsync((new Function("return " + data.args[0]))());
 				send(data);
 				break;
 
-			case "includeJs": // (url, callback)` {void}
+			case "includeJs": // (url, callback) {void}
 				page.includeJs(data.args[0], function() {
 					send(data);
 				});
 				break;
 
-			case "open": // (url, callback)` {void}
+			case "open": // (url, callback) {void}
 				page.open(data.args[0], function(status) {
 					// console.log("opening page...");
 					send(data, [ status ]);
@@ -219,38 +248,11 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "get":
-				temp = {};
-				if (typeof data.args[0] === "string") {
-					send(data, [ page[data.args[0]] ]);
-				} else {
-					for (k in data.args[0]) {
-						temp[k] = page[k];
-					}
-					send(data, [ temp ]);
-				}
+				processGetOptions(page, data);
 				break;
 
 			case "set":
-				if (typeof data.args[0] === "string") {
-					if (data.args[0] === "settings") {
-						for (k in data.args[1]) {
-							page.settings[k] = data.args[1][k];
-						}
-					} else {
-						page[data.args[0]] = data.args[1];
-					}
-				} else {
-					for (k in data.args[0]) {
-						if (k === "settings") {
-							for (j in data.args[0][k]) {
-								page.settings[j] = data.args[k][j];
-							}
-						} else {
-							page[k] = data.args[0][k];
-						}
-					}
-				}
-				send(data);
+				processSetOptions(page, data);
 				break;
 
 			default:
@@ -261,3 +263,8 @@ controller.onAlert = function(msg) {
 		console.log("Unknown page id: " + data.page);
 	}
 };
+
+/**
+ * Starts the communication channel with the bridge
+ */
+controller.open("http://127.0.0.1:" + port);
