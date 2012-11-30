@@ -193,14 +193,14 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "evaluate": // (function, arg1, arg2, ...)` {object}
-				/* jshint evil:true */
+				/*jshint evil:true */
 				var args = (data.args[1] || []).slice(0);
 				args.unshift((new Function("return " + data.args[0]))());
 				send(data, [ page.evaluate.apply(page, args) ]);
 				break;
 
 			case "evaluateAsync": // (function)` {void}
-				/* jshint evil:true */
+				/*jshint evil:true */
 				page.evaluateAsync((new Function("return " + data.args[0]))());
 				send(data);
 				break;

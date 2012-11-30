@@ -164,6 +164,7 @@ Page.prototype._onReceive = function(data) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-cookie
  */
 Page.prototype.addCookie = function(cookie, callback) {
@@ -180,6 +181,7 @@ Page.prototype.addCookie = function(cookie, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Phantom.prototype.deleteCookie = function(cookieName, callback) {
 	this.send("deleteCookie", callback, [ cookieName ]);
@@ -194,6 +196,7 @@ Phantom.prototype.deleteCookie = function(cookieName, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.clearCookies = function(callback) {
 	this.send("clearCookies", callback);
@@ -208,6 +211,7 @@ Page.prototype.clearCookies = function(callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.close = function(callback) {
 	this.send("close", callback);
@@ -224,6 +228,7 @@ Page.prototype.close = function(callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.evaluate = function(fn, args, callback) {
 	if (arguments.length === 2 && typeof arguments[1] === "function") {
@@ -243,6 +248,7 @@ Page.prototype.evaluate = function(fn, args, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.evaluateAsync = function(fn, callback) {
 	this.send("evaluateAsync", callback, [ fn.toString() ]);
@@ -258,6 +264,7 @@ Page.prototype.evaluateAsync = function(fn, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.includeJs = function(url, callback) {
 	this.send("includeJs", callback, [ url ]);
@@ -273,6 +280,7 @@ Page.prototype.includeJs = function(url, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.injectJs = function(filename, callback) {
 	this.send("injectJs", callback, [ filename ]);
@@ -288,6 +296,7 @@ Page.prototype.injectJs = function(filename, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.open = function(url, callback) {
 	this.send("open", callback, [ url ]);
@@ -302,6 +311,7 @@ Page.prototype.open = function(url, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.render = function(filename, callback) {
 	this.send("render", callback, [ filename ]);
@@ -317,6 +327,7 @@ Page.prototype.render = function(filename, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.renderBase64 = function(format, callback) {
 	this.send("renderBase64", callback, [ format ]);
@@ -333,6 +344,7 @@ Page.prototype.renderBase64 = function(format, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.sendEvent = function(type, args, callback) {
 	this.send("sendEvent", callback, [ type ].concat(args || []));
@@ -349,6 +361,7 @@ Page.prototype.sendEvent = function(type, args, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.uploadFile = function(selector, filename, callback) {
 	this.send("uploadFile", callback, [ selector, filename ]);
@@ -364,6 +377,7 @@ Page.prototype.uploadFile = function(selector, filename, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.get = function(key, callback) {
 	// `clipRect` {object}
@@ -395,6 +409,7 @@ Page.prototype.get = function(key, callback) {
  * @public
  * @returns {Page}
  * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
  */
 Page.prototype.set = function(key, value, callback) {
 	// `clipRect` {object}

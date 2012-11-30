@@ -316,6 +316,7 @@ Phantom.prototype._createPage = function(data) {
  * @public
  * @returns {Phantom}
  * @type {Phantom}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-phantom
  */
 Phantom.prototype.get = function(key, callback) {
 	// cookies {array}
@@ -336,6 +337,7 @@ Phantom.prototype.get = function(key, callback) {
  * @public
  * @returns {Phantom}
  * @type {Phantom}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-phantom
  */
 Phantom.prototype.set = function(key, value, callback) {
 	// cookies {array}
@@ -354,6 +356,7 @@ Phantom.prototype.set = function(key, value, callback) {
  * @public
  * @returns {Phantom}
  * @type {Phantom}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-phantom
  * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-cookie
  */
 Phantom.prototype.addCookie = function(cookie, callback) {
@@ -370,6 +373,7 @@ Phantom.prototype.addCookie = function(cookie, callback) {
  * @public
  * @returns {Phantom}
  * @type {Phantom}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-phantom
  */
 Phantom.prototype.deleteCookie = function(cookieName, callback) {
 	this.send("deleteCookie", callback, [ cookieName ]);
@@ -384,6 +388,7 @@ Phantom.prototype.deleteCookie = function(cookieName, callback) {
  * @public
  * @returns {Phantom}
  * @type {Phantom}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-phantom
  */
 Phantom.prototype.clearCookies = function(callback) {
 	this.send("clearCookies", callback);
@@ -398,6 +403,7 @@ Phantom.prototype.clearCookies = function(callback) {
  * @public
  * @returns {Phantom}
  * @type {Phantom}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-phantom
  */
 Phantom.prototype.createPage = function(callback) {
 	this.send("createPage", callback);
@@ -413,6 +419,7 @@ Phantom.prototype.createPage = function(callback) {
  * @public
  * @returns {Phantom}
  * @type {Phantom}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-phantom
  */
 Phantom.prototype.injectJs = function(filename, callback) {
 	this.send("injectJs", callback, [ filename ]);
