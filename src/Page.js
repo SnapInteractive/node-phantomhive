@@ -121,6 +121,7 @@ Page.prototype._onReceive = function(data) {
 		case "renderBase64": // (format)
 		case "sendEvent": // (type, mouseX, mouseY)
 		case "uploadFile": // (selector, filename)
+		case "setInteractionHandler":
 		case "get":
 		case "set":
 			if (this.activeRequests[data.command_id]) {
@@ -365,6 +366,38 @@ Page.prototype.sendEvent = function(type, args, callback) {
  */
 Page.prototype.uploadFile = function(selector, filename, callback) {
 	this.send("uploadFile", callback, [ selector, filename ]);
+	return this;
+};
+
+/**
+ * Sets the confirm handler for when a webpage issues a confirm() call
+ *
+ * @memberOf Page
+ * @param {Function} fn Function takes 1 argument, the string issed to the confirm() call
+ * @param {Function} callback
+ * @public
+ * @returns {Page}
+ * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
+ */
+Page.prototype.setConfirmHandler = function(fn, callback) {
+	this.send("setInteractionHandler", callback, [ "onConfirm", fn.toString() ]);
+	return this;
+};
+
+/**
+ * Sets the prompt handler for when a webpage issues a prompt() call
+ *
+ * @memberOf Page
+ * @param {Function} fn Function takes 1 argument, the string issed to the prompt() call
+ * @param {Function} callback
+ * @public
+ * @returns {Page}
+ * @type {Page}
+ * @see https://github.com/ariya/phantomjs/wiki/API-Reference#wiki-webpage
+ */
+Page.prototype.setPromptHandler = function(fn, callback) {
+	this.send("setInteractionHandler", callback, [ "onPrompt", fn.toString() ]);
 	return this;
 };
 

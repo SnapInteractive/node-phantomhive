@@ -56,7 +56,7 @@ function send(passthrough, args) {
  */
 function setup(page) {
 	var id = ++pageuuid;
-	// [ "onConfirm", "onPrompt" ] // todo: need user feedback
+
 	[ "onAlert", "onCallback", "onClosing", "onConsoleMessage", "onError", "onInitialized", "onLoadFinished", "onLoadStarted", "onNavigationRequested", "onResourceRequested", "onResourceReceived", "onUrlChanged" ].forEach(function(callback) {
 		page[callback] = function() {
 			send({
@@ -64,6 +64,21 @@ function setup(page) {
 				command_id : -1,
 				command : callback
 			}, Array.prototype.slice.call(arguments));
+		};
+	});
+
+	// handle interaction events when necessary
+	[ "onConfirm", "onPrompt" ].forEach(function(callback) {
+		page[callback] = function() {
+			var args = Array.prototype.slice.call(arguments);
+			var response = page[callback + "Handler"] ? page[callback + "Handler"].apply(page, args) : null;
+			args.push(response);
+			send({
+				page : id,
+				command_id : -1,
+				command : callback
+			}, args);
+			return response;
 		};
 	});
 	pages[id] = page;
@@ -135,6 +150,18 @@ function processSetOptions(context, data) {
 	}
 
 	send(data);
+}
+
+/**
+ * Evaluates a function string
+ *
+ * @param {String} fnString
+ * @returns {Function}
+ * @type {Function}
+ */
+function evalFunction(fnString) {
+	/*jshint evil:true */
+	return (new Function("return " + fnString))();
 }
 
 /**
@@ -222,15 +249,13 @@ controller.onAlert = function(msg) {
 				break;
 
 			case "evaluate": // (function, arg1, arg2, ...) {object}
-				/*jshint evil:true */
 				var args = (data.args[1] || []).slice(0);
-				args.unshift((new Function("return " + data.args[0]))());
+				args.unshift(evalFunction(data.args[0]));
 				send(data, [ page.evaluate.apply(page, args) ]);
 				break;
 
 			case "evaluateAsync": // (function) {void}
-				/*jshint evil:true */
-				page.evaluateAsync((new Function("return " + data.args[0]))());
+				page.evaluateAsync(evalFunction(data.args[0]));
 				send(data);
 				break;
 
@@ -245,6 +270,11 @@ controller.onAlert = function(msg) {
 					// console.log("opening page...");
 					send(data, [ status ]);
 				});
+				break;
+
+			case "setInteractionHandler":
+				page[data.args[0] + "Handler"] = evalFunction(data.args[1]);
+				send(data);
 				break;
 
 			case "get":
